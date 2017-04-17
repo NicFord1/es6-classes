@@ -1,5 +1,14 @@
 var webpack = require('webpack');
 var path = require('path');
+var envFile = require('node-env-file');
+
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
+try {
+  envFile(path.join(__dirname, 'config/' + process.env.NODE_ENV + '.env'));
+} catch (e) {
+
+}
 
 module.exports = {
   entry: [
@@ -14,6 +23,22 @@ module.exports = {
     new webpack.ProvidePlugin({
       '$': 'jquery',
       'jQuery': 'jquery'
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compressor: {
+        warnings: false
+      }
+    }),
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+        API_KEY: JSON.stringify(process.env.API_KEY),
+        AUTH_DOMAIN: JSON.stringify(process.env.AUTH_DOMAIN),
+        DATABASE_URL: JSON.stringify(process.env.DATABASE_URL),
+        PROJECT_ID: JSON.stringify(process.env.PROJECT_ID),
+        STORAGE_BUCKET: JSON.stringify(process.env.STORAGE_BUCKET),
+        MESSAGING_SENDER_ID: JSON.stringify(process.env.MESSAGING_SENDER_ID)
+      }
     })
   ],
   output: {
@@ -23,13 +48,10 @@ module.exports = {
   resolve: {
     modules: [
       __dirname,
-      'node_modules',
-      './app/components'
+      'node_modules'
     ],
-    alias: {
-      applicationStyles: 'app/styles/app.scss'
-    },
-    extensions: ['.js', '.jsx']
+    alias: {app: 'app'},
+    extensions: ['.js', '.jsx', '.css', '.scss']
   },
   module: {
     rules: [
@@ -61,5 +83,5 @@ module.exports = {
       }
     ]
   },
-  devtool: 'cheap-module-eval-source-map'
+  devtool: process.env.NODE_ENV === 'production' ? undefined : 'cheap-module-eval-source-map'
 };
